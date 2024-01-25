@@ -5,9 +5,11 @@ Partial Class stripetest
     Inherits System.Web.UI.Page
 
     Private Const SecretKey As String = "sk_test_2kJjhm9w9gKhYYsEtOP8nqEF"
+    Private classCustomerID As String
 
     Protected Sub Page_Load(sender As Object, e As EventArgs) Handles Me.Load
         StripeConfiguration.ApiKey = SecretKey
+
     End Sub
 
 
@@ -23,7 +25,19 @@ Partial Class stripetest
 
         ' Display customer ID or handle as needed
         lblCustomerId.Text = "Customer ID: " & customer.Id
+        Me.classCustomerID = customer.Id
         'created custid = cus_PPu6q9YDsDWMgA
+
+        Dim cardOptions = New CardCreateOptions With {
+            .Source = New CardCreateNestedOptions With {
+                .Number = "4242424242424242",
+                .ExpMonth = "5",
+                .ExpYear = "2024",
+                .Cvc = "314"
+            }
+        }
+        Dim cardService = New CardService()
+        cardService.Create(customer.Id, cardOptions)
     End Sub
 
     Protected Sub btnGetSubscriptions_Click(sender As Object, e As EventArgs) Handles btnGetSubscriptions.Click
@@ -56,21 +70,22 @@ Partial Class stripetest
     Protected Sub btnSendMoney_Click(sender As Object, e As EventArgs) Handles btnSendMoney.Click
         ' Retrieve customer ID from the text box or your database
         ' Get the customer ID from the text box or your database
-        Dim customerId As String = "cus_PPu6q9YDsDWMgA"
+        Dim customerId As String = "cus_PR2D8sBhi1DbMi" ' cus_PPu6q9YDsDWMgA
 
         ' Get the plan ID from the text box or your database
         Dim planId As String = "plan_Gkh1XW26MI8NJw"
 
         Dim options = New SubscriptionCreateOptions With {
-        .Customer = customerId,
-               .Items = New List(Of SubscriptionItemOptions) From {
-            New SubscriptionItemOptions With {
-                .Price = planId
-            }
+            .Customer = customerId,
+            .Items = New List(Of SubscriptionItemOptions) From {
+                New SubscriptionItemOptions With {
+                    .Price = planId
+                }
         }
     }
         Dim service = New SubscriptionService()
-        service.Create(options)
+        Dim subscription = service.Create(options)
 
+        txtSubscriptions.Text = ($"customer: {"hello"}, status: {subscription.Status}")
     End Sub
 End Class
