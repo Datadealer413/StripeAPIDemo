@@ -5,39 +5,39 @@ Partial Class stripetest
     Inherits System.Web.UI.Page
 
     Private Const SecretKey As String = "sk_test_2kJjhm9w9gKhYYsEtOP8nqEF"
-    Private classCustomerID As String
 
     Protected Sub Page_Load(sender As Object, e As EventArgs) Handles Me.Load
         StripeConfiguration.ApiKey = SecretKey
-
     End Sub
 
 
     Protected Sub btnCreateCustomer_Click(sender As Object, e As EventArgs) Handles btnCreateCustomer.Click
         ' Create a customer
         Dim customerOptions = New CustomerCreateOptions With {
-            .Email = "ian@dimck2.com",' change email each time for testing new customer
-            .PaymentMethod = "pm_card_visa"
+            .Email = txtCustomerEmail.Text
         }
 
         Dim customerService = New CustomerService()
         Dim customer = customerService.Create(customerOptions)
 
-        ' Display customer ID or handle as needed
-        lblCustomerId.Text = "Customer ID: " & customer.Id
-        Me.classCustomerID = customer.Id
-        'created custid = cus_PPu6q9YDsDWMgA
+        Dim cardNumber As String = txtCardNumber.Text
+        Dim month As String = txtExpirationMonth.Text
+        Dim year As String = txtExpirationYear.Text
+        Dim cvc As String = txtCvc.Text
 
         Dim cardOptions = New CardCreateOptions With {
             .Source = New CardCreateNestedOptions With {
-                .Number = "4242424242424242",
-                .ExpMonth = "5",
-                .ExpYear = "2024",
-                .Cvc = "314"
+                .Number = cardNumber,
+                .ExpMonth = month,
+                .ExpYear = year,
+                .Cvc = cvc
             }
         }
         Dim cardService = New CardService()
         cardService.Create(customer.Id, cardOptions)
+
+        ' Display customer ID or handle as needed
+        lblCustomerId.Text = customer.Id
     End Sub
 
     Protected Sub btnGetSubscriptions_Click(sender As Object, e As EventArgs) Handles btnGetSubscriptions.Click
@@ -51,7 +51,7 @@ Partial Class stripetest
 
         ' Display the retrieved plans
         For Each plan In plans
-            txtSubscriptions.Text += ($"Plan ID: {plan.Id}, Name: {plan.Nickname}, Amount: {plan.Amount} {plan.Currency}")
+            txtSubscriptions.Text += ($"Plan ID: {plan.Id}, Name: {plan.Nickname}, Amount: {plan.Amount} {plan.Currency} {vbCrlf}")
         Next
         'this returns
         '        Plan ID: plan_HEcSAPefjTZPUp, Name: Basic Monthly plan, Amount:    579 gbp
@@ -68,24 +68,31 @@ Partial Class stripetest
     End Sub
 
     Protected Sub btnSendMoney_Click(sender As Object, e As EventArgs) Handles btnSendMoney.Click
-        ' Retrieve customer ID from the text box or your database
-        ' Get the customer ID from the text box or your database
-        Dim customerId As String = "cus_PR2D8sBhi1DbMi" ' cus_PPu6q9YDsDWMgA
+        Dim customerId As String = lblCustomerId.Text
+        Dim planId As String = txtSubscriptionID.Text
 
-        ' Get the plan ID from the text box or your database
-        Dim planId As String = "plan_Gkh1XW26MI8NJw"
-
+        'Try
         Dim options = New SubscriptionCreateOptions With {
-            .Customer = customerId,
-            .Items = New List(Of SubscriptionItemOptions) From {
-                New SubscriptionItemOptions With {
-                    .Price = planId
+                .Customer = customerId,
+                .Items = New List(Of SubscriptionItemOptions) From {
+                    New SubscriptionItemOptions With {
+                        .Price = planId
+                    }
                 }
-        }
-    }
-        Dim service = New SubscriptionService()
-        Dim subscription = service.Create(options)
+            }
+            Dim service = New SubscriptionService()
+            Dim subscription = service.Create(options)
 
-        txtSubscriptions.Text = ($"customer: {"hello"}, status: {subscription.Status}")
+        Dim startDateStr As String = subscription.StartDate.ToString("MM/dd/yyyy")
+
+        lblMessage.Text = "Subscription result: "
+        lblMessage.Text += ($"customer: {subscription.CustomerId}")
+        lblMessage.Text += ($", Start Date: {startDateStr}")
+        lblMessage.Text += ($", status: {subscription.Status}")
+        'Catch ex As Exception
+        '    lblMessage.Text = "Something went wrong!"
+        'End Try
+
+
     End Sub
 End Class
