@@ -20,18 +20,8 @@ Partial Class stripetest
         Dim customerService = New CustomerService()
         Dim customer = customerService.Create(customerOptions)
 
-        Dim cardNumber As String = txtCardNumber.Text
-        Dim month As String = txtExpirationMonth.Text
-        Dim year As String = txtExpirationYear.Text
-        Dim cvc As String = txtCvc.Text
-
         Dim cardOptions = New CardCreateOptions With {
-            .Source = New CardCreateNestedOptions With {
-                .Number = cardNumber,
-                .ExpMonth = month,
-                .ExpYear = year,
-                .Cvc = cvc
-            }
+            .Source = txtCardTokenId.Text
         }
         Dim cardService = New CardService()
         cardService.Create(customer.Id, cardOptions)
